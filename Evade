@@ -1,0 +1,127 @@
+local lplr = game:GetService("Players").LocalPlayer
+local char = lplr.Character or lplr.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+local hum = char:WaitForChild("Humanoid")
+lplr.CharacterAdded:Connect(function(c) char = c;hrp = char:WaitForChild("HumanoidRootPart");hum = char:WaitForChild("Humanoid") end)
+local tickets = {}
+local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Turtle-Brand/Turtle-Lib/main/source.lua"))()
+lib:Keybind("V")
+local win = lib:Window("Voidz Main - By Sky")
+local tgl = false
+win:Toggle("Auto Farm Tickets",false,function(state)
+    tgl = state
+    if tgl then
+        thread = nil
+    end
+end)
+tickets = {}
+for _,v in ipairs(workspace:GetDescendants()) do
+    if v.Parent and v.Parent.Name == "Tickets" and v.Name == "Visual" then
+        table.insert(tickets,v)
+    end
+end
+workspace.DescendantAdded:Connect(function(v)
+    if v.Parent and v.Parent.Name == "Tickets" and v.Name == "Visual" then
+        table.insert(tickets,v)
+    end
+end)
+workspace.DescendantRemoving:Connect(function(v)
+    for i,k in ipairs(tickets) do
+        if k == v then
+            table.remove(tickets,i)
+            break
+        end
+    end
+end)
+local tgl_ = false
+win:Toggle("Auto Revive [Self]",false,function(state)
+    tgl_ = state
+end)
+local tgl_0 = false
+win:Toggle("Instant Revive Mode",false,function(state)
+    tgl_0 = state
+end)
+win:Label("Close/Open Keybind [Default Only]: V",Color3.fromRGB(127,143,166))
+win:Box("Keybind",function(text,ready)
+   if ready and not tonumber(text) then
+       lib:Keybind(tostring(text))
+       game:GetService("StarterGui"):SetCore("SendNotification",{Title = "Voidz Menu";Text = "Keybind Set To: "..tostring(text);Duration = 3})
+   end
+end)
+win:Button("Destroy The Library",function()
+   lib:Destroy()
+end)
+local win_ = lib:Window("Voidz Visuals - By Sky")
+local esp = {}
+local tgl_1 = false
+win_:Toggle("Esp NextBots",false,function(state)
+    tgl_1 = state
+    if state then
+        task.spawn(function()
+            while tgl_1 and task.wait() do
+                for _,v in ipairs(workspace:WaitForChild("Game"):WaitForChild("Players"):GetChildren()) do
+                    if not esp[v] and v:GetAttribute("AI") == true then
+                        local bbg = Instance.new("BillboardGui",v)
+                        bbg.Size,bbg.Adornee,bbg.AlwaysOnTop = UDim2.fromOffset(100,50),v,true
+                        local tl = Instance.new("TextLabel",bbg)
+                        tl.Size,tl.BackgroundTransparency,tl.Text,tl.TextColor3,tl.TextSize = UDim2.fromScale(1,1),1,"["..v.Name.."]",Color3.new(1,1,1),10
+                        esp[v] = bbg
+                    end
+                end
+                for i,k in pairs(esp) do
+                    if not i.Parent or not i:GetAttribute("AI") then
+                        k:Destroy()
+                        esp[i] = nil
+                    end
+                end
+            end
+        end)
+    else
+        for i,k in pairs(esp) do
+            if k then k:Destroy() end
+            esp[i] = nil
+        end
+    end
+end)
+local last,interval = 0,5
+local thread
+local function farm()
+    while tgl and hrp and hrp.Parent do
+        if #tickets == 0 then
+            hrp.CFrame = CFrame.new(0,1e5,0)
+            task.wait(1)
+        else
+            for _,v in ipairs(tickets) do
+                if not tgl or not hrp or not hrp.Parent then break end
+                if v.PrimaryPart then
+                    hrp.CFrame = v.PrimaryPart.CFrame
+                    if #tickets == 1 then
+                        task.wait()
+                    else
+                        task.wait(1)
+                    end
+                else
+                    task.wait(.1)
+                end
+            end
+        end
+        task.wait()
+    end
+end
+game:GetService("RunService").Heartbeat:Connect(function()
+    if tgl then
+        if not thread or coroutine.status(thread) == "dead" then
+            thread = task.spawn(farm)
+        end
+    else
+        thread = nil
+    end
+    if tgl_ and char and char:GetAttribute("Downed") then
+        if not tgl_0 and tick()-last >= interval then
+            last = tick()
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Player"):WaitForChild("ChangePlayerMode"):FireServer(true)
+        else
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Player"):WaitForChild("ChangePlayerMode"):FireServer(true)
+        end
+    end
+end)
