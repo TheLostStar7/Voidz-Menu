@@ -54,15 +54,20 @@ end)
 local win_ = lib:Window("Voidz Visuals - By Sky")
 local esp = {}
 local tgl_1 = false
+local thread_
 win_:Toggle("Esp NextBots",false,function(state)
     tgl_1 = state
     if state then
-        task.spawn(function()
-            while tgl_1 and task.wait() do
+        if thread_ then
+            task.cancel(thread_)
+        end
+        thread_ = task.spawn(function()
+            while tgl_1 do
+                task.wait(.1)
                 for _,v in ipairs(workspace:WaitForChild("Game"):WaitForChild("Players"):GetChildren()) do
                     if not esp[v] and v:GetAttribute("AI") == true then
-                        local bbg = Instance.new("BillboardGui",v)
-                        bbg.Size,bbg.Adornee,bbg.AlwaysOnTop = UDim2.fromOffset(100,50),v,true
+                        local bbg = Instance.new("BillboardGui")
+                        bbg.Size,bbg.Parent,bbg.Adornee,bbg.AlwaysOnTop = UDim2.fromOffset(100,50),game:GetService("CoreGui"),v,true
                         local tl = Instance.new("TextLabel",bbg)
                         tl.Size,tl.BackgroundTransparency,tl.Text,tl.TextColor3,tl.TextSize = UDim2.fromScale(1,1),1,"["..v.Name.."]",Color3.new(1,1,1),10
                         esp[v] = bbg
@@ -77,6 +82,10 @@ win_:Toggle("Esp NextBots",false,function(state)
             end
         end)
     else
+        if thread_ then
+            task.cancel(thread_)
+            thread_ = nil
+        end
         for i,k in pairs(esp) do
             if k then k:Destroy() end
             esp[i] = nil
