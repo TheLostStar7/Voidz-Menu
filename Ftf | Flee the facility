@@ -350,10 +350,6 @@ Tabs.ExtraFeatures:Button({Title = "Force Respawn",Desc = "This Can Free You Fro
     lplr:LoadCharacter()
 end,})
 local info = Tabs.Info:Paragraph({Title = "Info + More Features:",Desc = "",Color = "Green",Buttons = {{Icon = "bird",Title = "Discord Server Link",Callback = function() setclipboard("https://discord.gg/6UaRDjBY42") lib:Notify({Title = "Discord Server Link.",Content = "https://discord.gg/6UaRDjBY42",Duration = 8,Icon = "check"}) end,},{Title = "Smallest Serverhop",Callback = function() local JobId = (httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))).data[1].id if JobId ~= game.JobId then ts:TeleportToPlaceInstance(game.PlaceId,JobId,lplr) end end,}},Locked = true})
-local function Update_Info()
+runs.Heartbeat:Connect(function()
     info:SetDesc("Credits To The Owner: Sky\nDiscord Name For Contact: theloststar0802\nPing: "..math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue() or 0).."ms.\nServer Stuff:\nSize: "..#game:GetService("Players"):GetPlayers().."/"..game:GetService("Players").MaxPlayers..".\nBeast Power: "..rep.CurrentPower.Value)
-end
-Update_Info()
-game:GetService("Players").PlayerAdded:Connect(Update_Info)
-game:GetService("Players").PlayerRemoving:Connect(Update_Info)
-rep.CurrentPower:GetPropertyChangedSignal("Value"):Connect(Update_Info)
+end)
