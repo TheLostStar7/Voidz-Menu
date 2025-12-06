@@ -1,6 +1,6 @@
 repeat task.wait() until game:IsLoaded()
 local lib = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-lib:Notify({Title = "Voidz Hub Notification.",Content = "Loaded Successfully!",Duration = 3,Icon = "bird"})
+lib:Notify({Title = "StarHub Notification.",Content = "Loaded Successfully!",Duration = 3,Icon = "bird"})
 local rep,runs,uis,rs,httpservice,ts = game:GetService("ReplicatedStorage"),game:GetService("RunService"),game:GetService("UserInputService"),game:GetService("RunService"),game:GetService("HttpService"),game:GetService("TweenService")
 local lplr = game:GetService("Players").LocalPlayer
 local char = lplr.Character or lplr.CharacterAdded:Wait()
@@ -28,16 +28,16 @@ getgenv().Settings = {
         Connection
     }
 }
-local win = lib:CreateWindow({Title = "Voidz Hub - FTF/Flee The Facility",Icon = "rbxassetid://140350520713166",Author = "Owner: Sky",Size = UDim2.fromOffset(820,540),Transparent = true,Theme = "Dark",Resizable = true,SideBarWidth = 180,ScrollBarEnabled = true,User = {Enabled = true,Anonymous = false}})
-win:EditOpenButton({Title = "Voidz Hub",Icon = "monitor",CornerRadius = UDim.new(0,6),StrokeThickness = 2,Color = ColorSequence.new(Color3.fromRGB(30,30,30),Color3.fromRGB(255,255,255)),Draggable = true})
+local win = lib:CreateWindow({Title = "StarHub - FTF/Flee The Facility",Icon = "rbxassetid://140350520713166",Author = "Owner: Sky",Size = UDim2.fromOffset(820,540),Transparent = true,Theme = "Dark",Resizable = true,SideBarWidth = 180,ScrollBarEnabled = true,User = {Enabled = true,Anonymous = false}})
+win:EditOpenButton({Title = "StarHub",Icon = "monitor",CornerRadius = UDim.new(0,6),StrokeThickness = 2,Color = ColorSequence.new(Color3.fromRGB(30,30,30),Color3.fromRGB(255,255,255)),Draggable = true})
 local Sections = {
     Main = win:Section({Title = "Main Section",Icon = "crown",Opened = false}),
     Misc = win:Section({Title = "Misc",Icon = "info",Opened = false})
 }
 local Tabs = {
     Features = Sections.Main:Tab({Title = "Features",Icon = "sword",Desc = "The Tab That Contains Everything Important."}),
-    Info = Sections.Misc:Tab({Title = "Info",Icon = "users",Desc = "Credits And Discord Server And Information."}),
-    ExtraFeatures = Sections.Misc:Tab({Title = "Extra Features",Icon = "lucide:anchor",Desc = "Oh My Gyat. More Features?"})
+    ExtraFeatures = Sections.Main:Tab({Title = "Extra Features",Icon = "lucide:anchor",Desc = "Oh My Gyat. More Features?"}),
+    Info = Sections.Misc:Tab({Title = "Info",Icon = "users",Desc = "Credits And Discord Server And Information."})
 }
 Tabs.Features:Paragraph({Title = "Main Section",Color = "Orange",Locked = true})
 Tabs.Features:Dropdown({Title = "Bypass Method",Values = {"Metamethod","Event","Legitmate"},Value = "Metamethod",Callback = function(v)
@@ -83,40 +83,94 @@ Tabs.Features:Slider({Title = "Crawling Speed",Step = 1,Value = {Min = 8,Max = 1
     end)
 end,})
 Tabs.Features:Paragraph({Title = "Visuals Section",Color = "Orange",Locked = true})
-Tabs.Features:Toggle({Title = "Players Esp",Desc = "",Type = "Checkbox",Default = false,Callback = function(state)
-    getgenv().Settings.Esp.Players = state
-    local Elements = getgenv().Settings.Esp.Elements
-    Elements["Players"] = Elements["Players"] or {}
-    local function esp()
-        if not getgenv().Settings.Esp.Players then return end
-        for _,plr in ipairs(game:GetService("Players"):GetPlayers()) do
-            if plr ~= game:GetService("Players").LocalPlayer and plr.Character then
-                local stats = plr:FindFirstChild("TempPlayerStatsModule") or v:WaitForChild("TempPlayerStatsModule")
-                if not stats or not stats:FindFirstChild("IsBeast") then return end
-                if Elements["Players"][plr] then Elements["Players"][plr]:Destroy() end
-                local hi = Instance.new("Highlight",plr.Character)
-                hi.FillColor,hi.OutlineTransparency,hi.FillTransparency,hi.DepthMode = plr.TempPlayerStatsModule.IsBeast.Value and Color3.new(.9,0,0) or Color3.fromRGB(153,255,153),plr.TempPlayerStatsModule.IsBeast.Value and .5 or 1,.75,Enum.HighlightDepthMode.AlwaysOnTop
-                Elements["Players"][plr] = hi
-                stats.IsBeast:GetPropertyChangedSignal("Value"):Connect(function()
+local extension = false
+local function cleanup(plr,Elements)
+    local data = Elements["Players"][plr]
+    if data then
+        if data.conn then data.conn:Disconnect() end
+        if data.hi then data.hi:Destroy() end
+        if data.bbg then data.bbg:Destroy() end
+        Elements["Players"][plr] = nil
+    end
+end
+local function plr_esp(Elements)
+    if not getgenv().Settings.Esp.Players then return end
+    for _,plr in ipairs(game:GetService("Players"):GetPlayers()) do
+        if plr ~= game:GetService("Players").LocalPlayer and plr.Character then
+            local stats = plr:FindFirstChild("TempPlayerStatsModule") or plr:WaitForChild("TempPlayerStatsModule")
+            if not stats or not stats:FindFirstChild("IsBeast") then continue end
+            cleanup(plr, Elements)
+            local bbg, tl
+            if extension then
+                bbg = Instance.new("BillboardGui",plr.Character:WaitForChild("Head"))
+                bbg.Size = UDim2.fromOffset(100,50)
+                bbg.StudsOffset = Vector3.new(0,2,0)
+                bbg.AlwaysOnTop = true
+                bbg.Adornee = plr.Character:WaitForChild("Head")
+                tl = Instance.new("TextLabel",bbg)
+                tl.Size = UDim2.fromScale(1,1)
+                tl.BackgroundTransparency = 1
+                tl.TextColor3 = stats.IsBeast.Value and Color3.new(.9,0,0) or Color3.fromRGB(153,255,153)
+                tl.Font = Enum.Font.Fantasy
+                tl.TextSize = 13
+                tl.Text = stats.IsBeast.Value and ("Power: "..rep.CurrentPower.Value.." | Beast | "..plr.Name) or ("Survivor | "..plr.Name)
+            end
+            local hi = Instance.new("Highlight",plr.Character)
+            hi.FillColor = stats.IsBeast.Value and Color3.new(.9,0,0) or Color3.fromRGB(153,255,153)
+            hi.OutlineTransparency = stats.IsBeast.Value and .5 or 1
+            hi.FillTransparency = .75
+            hi.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            Elements["Players"][plr] = {
+                hi = hi,
+                bbg = bbg,
+                tl = tl,
+                conn = stats.IsBeast:GetPropertyChangedSignal("Value"):Connect(function()
                     if hi then
                         hi.FillColor = stats.IsBeast.Value and Color3.new(.9,0,0) or Color3.fromRGB(153,255,153)
                         hi.OutlineTransparency = stats.IsBeast.Value and .5 or 1
                     end
+                    if tl then
+                        tl.TextColor3 = stats.IsBeast.Value and Color3.new(.9,0,0) or Color3.fromRGB(153,255,153)
+                        tl.Text = stats.IsBeast.Value and ("Power: "..rep.CurrentPower.Value.." | Beast | "..plr.Name) or ("Survivor | "..plr.Name)
+                    end
                 end)
-            end
+            }
         end
     end
-    if getgenv().Settings.Esp.Players then
-        esp()
+end
+Tabs.Features:Toggle({Title = "Players Esp",Desc = "",Type = "Checkbox",Default = false,Callback = function(state)
+    getgenv().Settings.Esp.Players = state
+    local Elements = getgenv().Settings.Esp.Elements
+    Elements["Players"] = Elements["Players"] or {}
+    if state then
+        plr_esp(Elements)
         game:GetService("Players").PlayerAdded:Connect(function(plr)
             plr.CharacterAdded:Connect(function()
                 repeat task.wait() until plr.Character:FindFirstChild("Humanoid")
-                esp()
+                plr_esp(Elements)
             end)
         end)
     else
-        for i,v in pairs(Elements["Players"]) do if v then v:Destroy() end end
+        for plr,data in pairs(Elements["Players"]) do
+            cleanup(plr,Elements)
+        end
         Elements["Players"] = {}
+    end
+end,})
+game:GetService("Players").PlayerRemoving:Connect(function(plr)
+    local Elements = getgenv().Settings.Esp.Elements
+    if Elements and Elements["Players"] then
+        cleanup(plr,Elements)
+    end
+end)
+Tabs.Features:Toggle({Title = "Beast Role Extension",Desc = "Make The Players Esp Apply A TextLabel To Identify The Beasts Power And Names",Type = "Checkbox",Value = false,Callback = function(state)
+    extension = state
+    if getgenv().Settings.Esp.Players then
+        local Elements = getgenv().Settings.Esp.Elements
+        for plr,data in pairs(Elements["Players"]) do
+            cleanup(plr,Elements)
+        end
+        plr_esp(Elements)
     end
 end,})
 Tabs.Features:Toggle({Title = "Computers Esp",Desc = "",Type = "Checkbox",Value = false,Callback = function(state)
@@ -124,8 +178,8 @@ Tabs.Features:Toggle({Title = "Computers Esp",Desc = "",Type = "Checkbox",Value 
     local Elements = getgenv().Settings.Esp.Elements
     Elements["Computer"] = Elements["Computer"] or {}
     local function Apply(v)
-        if v.Name == "ComputerTable" and not Elements["Computer"][v] then
-            local screen = v:FindFirstChild("Screen") or v:WaitForChild("Screen")
+        if v.Name == "ComputerTable" and v.Parent.Name == tostring(rep.CurrentMap.Value) and v.Parent.Parent.Name == "Workspace" and not Elements["Computer"][v] then
+            local screen = v:WaitForChild("Screen")
             if not screen then return end
             local hi = Instance.new("Highlight",v)
             hi.FillColor,hi.OutlineTransparency,hi.FillTransparency,hi.DepthMode = screen.Color,1,.75,Enum.HighlightDepthMode.AlwaysOnTop
@@ -219,6 +273,20 @@ Tabs.Features:Toggle({Title = "ExitDoors Esp",Desc = "",Type = "Checkbox",Value 
     end
 end,})
 Tabs.Features:Paragraph({Title = "Beast Section",Color = "Red",Locked = true})
+local conn
+Tabs.Features:Toggle({Title = "Anti Slowness",Desc = "",Type = "Checkbox",Value = false,Callback = function(state)
+    if state then
+        local IsCrawling = lplr and lplr:WaitForChild("TempPlayerStatsModule") and lplr.TempPlayerStatsModule:WaitForChild("IsCrawling") and lplr.TempPlayerStatsModule.IsCrawling
+        conn = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if not IsCrawling and hum.WalkSpeed < 16 then
+                hum.WalkSpeed = 17
+            end
+        end)
+    elseif conn ~= nil then
+        conn:Disconnect()
+        conn = nil
+    end
+end,})
 Tabs.Features:Slider({Title = "Hit Distance",Step = 1,Value = {Min = 8,Max = 28,Default = 8},Callback = function(v)
     getgenv().Settings.Hit_Settings.Distance = v
 end,})
@@ -269,7 +337,6 @@ Tabs.Features:Toggle({Title = "Tie Aura",Desc = "",Type = "Checkbox",Value = fal
         end
     end
 end,})
-Tabs.Info:Paragraph({Title = "Credits Section",Desc = "Nickname: Sky | User: theloststar0802",Color = "Blue",Locked = true})
 Tabs.ExtraFeatures:Button({Title = "ShiftLock",Desc = "This Is By Nameless Admin.",Locked = false,Callback = function()
     loadstring(game:HttpGet("https://github.com/ltseverydayyou/uuuuuuu/blob/main/shiftlock?raw=true"))()
 end,})
@@ -282,3 +349,11 @@ Tabs.ExtraFeatures:Button({Title = "Force Respawn",Desc = "This Can Free You Fro
     hum.Health = 0
     lplr:LoadCharacter()
 end,})
+local info = Tabs.Info:Paragraph({Title = "Info + More Features:",Desc = "",Color = "Green",Buttons = {{Icon = "bird",Title = "Discord Server Link",Callback = function() setclipboard("https://discord.gg/6UaRDjBY42") lib:Notify({Title = "Discord Server Link.",Content = "https://discord.gg/6UaRDjBY42",Duration = 8,Icon = "check"}) end,},{Title = "Smallest Serverhop",Callback = function() local JobId = (httpservice:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))).data[1].id if JobId ~= game.JobId then ts:TeleportToPlaceInstance(game.PlaceId,JobId,lplr) end end,}},Locked = true})
+local function Update_Info()
+    info:SetDesc("Credits To The Owner: Sky\nDiscord Name For Contact: theloststar0802\nPing: "..math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue() or 0).."ms.\nServer Stuff:\nSize: "..#game:GetService("Players"):GetPlayers().."/"..game:GetService("Players").MaxPlayers..".\nBeast Power: "..rep.CurrentPower.Value)
+end
+Update_Info()
+game:GetService("Players").PlayerAdded:Connect(Update_Info)
+game:GetService("Players").PlayerRemoving:Connect(Update_Info)
+rep.CurrentPower:GetPropertyChangedSignal("Value"):Connect(Update_Info)
